@@ -3,6 +3,7 @@ uvicorn[standard]
 SQLAlchemy
 psycopg2-binary
 python-jose[cryptography]
+passlib[bcrypt]
 pydantic
 pytest
 httpx
