@@ -5,7 +5,10 @@ psycopg2-binary
 python-jose[cryptography]
 passlib[bcrypt]
 pydantic
+pydantic-settings
 pytest
 httpx
 coverage
 Sphinx
+prometheus-client
+prometheus-fastapi-instrumentator

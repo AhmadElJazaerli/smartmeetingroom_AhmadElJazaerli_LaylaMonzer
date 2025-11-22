@@ -50,3 +50,29 @@ def require_role(*roles: str):
         return current_user
 
     return wrapper
+
+
+def require_mfa_for_sensitive_operations(
+    mfa_code: str = None,
+    current_user: models.User = Depends(get_current_user),
+):
+    """
+    Dependency to require MFA verification for sensitive operations.
+    If user has MFA enabled, they must provide a valid MFA code in the header.
+    """
+    from .mfa import verify_totp_code
+    
+    if current_user.mfa_enabled:
+        if not mfa_code:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="MFA code required for this operation. Provide 'X-MFA-Code' header",
+            )
+        
+        if not verify_totp_code(current_user.mfa_secret, mfa_code):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Invalid MFA code",
+            )
+    
+    return current_user

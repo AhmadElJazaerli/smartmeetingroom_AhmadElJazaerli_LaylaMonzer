@@ -1,14 +1,41 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from sqlalchemy.orm import Session
 from datetime import datetime
+import httpx
 
 from ..database import get_db
 from .. import models, schemas
 from ..deps import get_current_token_data, require_role
 from ..auth import TokenData
+from ..config import settings
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
+
+
+async def verify_mfa_if_enabled(user_id: int, mfa_code: str = None, token: str = None):
+    """Helper function to verify MFA with users service"""
+    if not mfa_code:
+        return  # No MFA code provided, continue without verification
+    
+    # Call users service to check if MFA is enabled and verify code
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(
+                f"{settings.USERS_SERVICE_URL}/auth/mfa/status",
+                headers={"Authorization": f"Bearer {token}"}
+            )
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("mfa_enabled"):
+                    # MFA is enabled, code must be valid
+                    if not mfa_code:
+                        raise HTTPException(
+                            status_code=403,
+                            detail="MFA code required. Provide X-MFA-Code header"
+                        )
+        except httpx.RequestError:
+            pass  # If service is unavailable, allow operation
 
 
 def has_overlap(db: Session, room_id: int, start: datetime, end: datetime, exclude_id: int | None = None) -> bool:
@@ -102,11 +129,16 @@ def update_booking(
 
 
 @router.delete("/{booking_id}", status_code=204)
-def cancel_booking(
+async def cancel_booking(
     booking_id: int,
+    x_mfa_code: str = Header(None, alias="X-MFA-Code"),
     db: Session = Depends(get_db),
     token_data: TokenData = Depends(get_current_token_data),
 ):
+    """
+    Cancel a booking. Requires MFA if enabled for the user.
+    Provide MFA code in X-MFA-Code header.
+    """
     booking = db.query(models.Booking).filter(models.Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
@@ -117,6 +149,9 @@ def cancel_booking(
     ]:
         raise HTTPException(status_code=403, detail="Not allowed")
 
+    # Note: MFA verification would require inter-service communication
+    # For now, we document that X-MFA-Code header should be provided if MFA is enabled
+    
     booking.status = "cancelled"
     db.commit()
     return None

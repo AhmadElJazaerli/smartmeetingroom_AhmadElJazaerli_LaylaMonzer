@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List
 
 
@@ -20,12 +20,11 @@ class BookingUpdate(BaseModel):
 
 
 class BookingOut(BookingBase):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: int
     user_id: int
     status: str
-
-    class Config:
-        orm_mode = True
 
 
 class BookingList(BaseModel):

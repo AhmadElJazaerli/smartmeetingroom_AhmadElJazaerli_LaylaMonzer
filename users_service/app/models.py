@@ -16,3 +16,5 @@ class User(Base):
         default="regular",  # admin, regular, facility_manager, moderator, auditor, service
     )
     is_active = Column(Boolean, default=True)
+    mfa_enabled = Column(Boolean, default=False)
+    mfa_secret = Column(String, nullable=True)  # TOTP secret key

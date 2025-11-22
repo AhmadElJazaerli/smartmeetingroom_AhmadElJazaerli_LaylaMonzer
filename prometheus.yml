@@ -1,0 +1,34 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'users_service'
+    static_configs:
+      - targets: ['users_service:8000']
+        labels:
+          service: 'users'
+
+  - job_name: 'rooms_service'
+    static_configs:
+      - targets: ['rooms_service:8000']
+        labels:
+          service: 'rooms'
+
+  - job_name: 'bookings_service'
+    static_configs:
+      - targets: ['bookings_service:8000']
+        labels:
+          service: 'bookings'
+
+  - job_name: 'reviews_service'
+    static_configs:
+      - targets: ['reviews_service:8000']
+        labels:
+          service: 'reviews'
+
+  - job_name: 'analytics_service'
+    static_configs:
+      - targets: ['analytics_service:8000']
+        labels:
+          service: 'analytics'

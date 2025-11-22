@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 
 
@@ -31,8 +31,7 @@ class UserUpdate(BaseModel):
 
 
 class UserOut(UserBase):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: int
     is_active: bool
-
-    class Config:
-        orm_mode = True

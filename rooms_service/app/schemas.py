@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 
@@ -22,9 +22,8 @@ class RoomUpdate(BaseModel):
 
 
 class RoomOut(RoomBase):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: int
     is_available: bool
     is_out_of_service: bool
-
-    class Config:
-        orm_mode = True
