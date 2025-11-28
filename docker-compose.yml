@@ -1,170 +1,100 @@
-version: '3.8'
-
+version: "3.9"
 services:
-  # PostgreSQL Database
   db:
     image: postgres:15-alpine
-    container_name: smartmeeting_db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: smartuser
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
       POSTGRES_DB: smartmeeting
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - smartmeeting_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    ports:
+      - "5433:5432"
+    secrets:
+      - db_password
 
-  # Users Service
-  users_service:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  users:
     build:
-      context: ./users_service
-      dockerfile: Dockerfile
-    container_name: users_service
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/smartmeeting
-      JWT_SECRET_KEY: your-secret-key-change-in-production
-      JWT_ALGORITHM: HS256
-      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      context: .
+      dockerfile: services/users/Dockerfile
     ports:
-      - "8001:8000"
+      - "8001:8001"
+    environment:
+      RUN_DB_MIGRATIONS: "true"
+      DATABASE_URL: postgresql+psycopg2://smartuser:smartpass@db:5432/smartmeeting
+      JWT_SECRET: ${JWT_SECRET:-super-secret-change-me}
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-service-key}
     depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - smartmeeting_network
-    restart: unless-stopped
+      - db
 
-  # Rooms Service
-  rooms_service:
+  rooms:
     build:
-      context: ./rooms_service
-      dockerfile: Dockerfile
-    container_name: rooms_service
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/smartmeeting
-      JWT_SECRET_KEY: your-secret-key-change-in-production
-      JWT_ALGORITHM: HS256
+      context: .
+      dockerfile: services/rooms/Dockerfile
     ports:
-      - "8002:8000"
+      - "8002:8002"
+    environment:
+      RUN_DB_MIGRATIONS: "false"
+      DATABASE_URL: postgresql+psycopg2://smartuser:smartpass@db:5432/smartmeeting
+      JWT_SECRET: ${JWT_SECRET:-super-secret-change-me}
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-service-key}
     depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - smartmeeting_network
-    restart: unless-stopped
+      - db
 
-  # Bookings Service
-  bookings_service:
+  nginx:
     build:
-      context: ./bookings_service
-      dockerfile: Dockerfile
-    container_name: bookings_service
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/smartmeeting
-      JWT_SECRET_KEY: your-secret-key-change-in-production
-      JWT_ALGORITHM: HS256
-      USERS_SERVICE_URL: http://users_service:8000
+      context: .
+      dockerfile: nginx/Dockerfile
     ports:
-      - "8003:8000"
+      - "8081:80"
     depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - smartmeeting_network
-    restart: unless-stopped
+      - rooms
+      - users
+      - bookings
+      - reviews
 
-  # Reviews Service
-  reviews_service:
+  bookings:
     build:
-      context: ./reviews_service
-      dockerfile: Dockerfile
-    container_name: reviews_service
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/smartmeeting
-      JWT_SECRET_KEY: your-secret-key-change-in-production
-      JWT_ALGORITHM: HS256
+      context: .
+      dockerfile: services/bookings/Dockerfile
     ports:
-      - "8004:8000"
+      - "8003:8003"
+    environment:
+      RUN_DB_MIGRATIONS: "false"
+      DATABASE_URL: postgresql+psycopg2://smartuser:smartpass@db:5432/smartmeeting
+      JWT_SECRET: ${JWT_SECRET:-super-secret-change-me}
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-service-key}
     depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - smartmeeting_network
-    restart: unless-stopped
+      - db
 
-  # Analytics Service
-  analytics_service:
+  reviews:
     build:
-      context: ./analytics_service
-      dockerfile: Dockerfile
-    container_name: analytics_service
+      context: .
+      dockerfile: services/reviews/Dockerfile
+    ports:
+      - "8004:8004"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/smartmeeting
-      JWT_SECRET_KEY: your-secret-key-change-in-production
-      JWT_ALGORITHM: HS256
-      USERS_SERVICE_URL: http://users_service:8000
-      ROOMS_SERVICE_URL: http://rooms_service:8000
-      BOOKINGS_SERVICE_URL: http://bookings_service:8000
-      REVIEWS_SERVICE_URL: http://reviews_service:8000
-    ports:
-      - "8005:8000"
+      RUN_DB_MIGRATIONS: "false"
+      DATABASE_URL: postgresql+psycopg2://smartuser:smartpass@db:5432/smartmeeting
+      JWT_SECRET: ${JWT_SECRET:-super-secret-change-me}
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-service-key}
     depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - smartmeeting_network
-    restart: unless-stopped
-
-  # Prometheus - Metrics Collection
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-    ports:
-      - "9090:9090"
-    networks:
-      - smartmeeting_network
-    restart: unless-stopped
-
-  # Grafana - Dashboards and Visualization
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/dashboards:/etc/grafana/dashboards
-    ports:
-      - "3000:3000"
-    depends_on:
-      - prometheus
-    networks:
-      - smartmeeting_network
-    restart: unless-stopped
+      - db
 
 volumes:
   postgres_data:
-  prometheus_data:
-  grafana_data:
 
-networks:
-  smartmeeting_network:
-    driver: bridge
+secrets:
+  db_password:
+    file: ./db_password.txt
+  jwt_secret:
+    file: ./jwt_secret.txt
