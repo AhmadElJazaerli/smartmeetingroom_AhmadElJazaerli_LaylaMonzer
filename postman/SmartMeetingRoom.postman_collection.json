@@ -1,0 +1,87 @@
+{
+  "info": {
+    "name": "Smart Meeting Room APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection covering Users, Rooms, Bookings, and Reviews services"
+  },
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{users_url}}/users/register",
+              "host": ["{{users_url}}"],
+              "path": ["users", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin\",\n  \"username\": \"admin\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"Passw0rd!\",\n  \"role\": \"admin\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "url": {
+              "raw": "{{users_url}}/users/login",
+              "host": ["{{users_url}}"],
+              "path": ["users", "login"]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "admin" },
+                { "key": "password", "value": "Passw0rd!" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Rooms",
+      "item": [
+        {
+          "name": "Create Room",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{rooms_url}}/rooms",
+              "host": ["{{rooms_url}}"],
+              "path": ["rooms"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Board Room\",\n  \"capacity\": 12,\n  \"equipment\": [\"tv\", \"whiteboard\"],\n  \"location\": \"HQ\"\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "users_url", "value": "http://localhost:8001" },
+    { "key": "rooms_url", "value": "http://localhost:8002" },
+    { "key": "bookings_url", "value": "http://localhost:8003" },
+    { "key": "reviews_url", "value": "http://localhost:8004" },
+    { "key": "token", "value": "" }
+  ]
+}
