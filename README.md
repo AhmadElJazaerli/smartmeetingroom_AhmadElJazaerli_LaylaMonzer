@@ -30,3 +30,6 @@ uvicorn services.users.app:app --reload --port 8001
 ```
 
 For complete instructions (Docker, env variables, docs build, profiling, and API reference), see `docs/build/html/index.html` after running `make html` under `docs/`.
+
+
+To run using docker, please have docker desktop already installed and open, then run docker compose up , this will get all 4 services running no need to do any of the previous steps.

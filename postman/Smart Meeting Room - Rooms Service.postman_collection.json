@@ -1,0 +1,193 @@
+{
+	"info": {
+		"_postman_id": "e034c955-9bdc-4205-a2d3-2b7455e1699e",
+		"name": "Smart Meeting Room - Rooms Service",
+		"description": "Testing collection for Rooms Microservice APIs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "41576664"
+	},
+	"item": [
+		{
+			"name": "Add Room",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Conference Room A\",\n  \"location\": \"Building 2, Floor 3\",\n  \"capacity\": 12,\n  \"equipment\": [\"projector\", \"whiteboard\", \"hdmi\"],\n  \"is_active\": true\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/rooms",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"rooms"
+					]
+				},
+				"description": "Create a new meeting room (Admin or Facility Manager only)"
+			},
+			"response": []
+		},
+		{
+			"name": "List Rooms (optional filters)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/rooms?capacity=10&location=Building&equipment=projector&equipment=whiteboard",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"rooms"
+					],
+					"query": [
+						{
+							"key": "capacity",
+							"value": "10"
+						},
+						{
+							"key": "location",
+							"value": "Building"
+						},
+						{
+							"key": "equipment",
+							"value": "projector"
+						},
+						{
+							"key": "equipment",
+							"value": "whiteboard"
+						}
+					]
+				},
+				"description": "List rooms with filtering (public route)"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Room by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/rooms/{{room_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"rooms",
+						"{{room_id}}"
+					]
+				},
+				"description": "Fetch a single room by ID"
+			},
+			"response": []
+		},
+		{
+			"name": "Update Room",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Updated Conference Room\",\n  \"location\": \"Building 4, Floor 1\",\n  \"capacity\": 20,\n  \"equipment\": [\"projector\", \"zoom-camera\", \"whiteboard\"],\n  \"is_active\": true\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/rooms/{{room_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"rooms",
+						"{{room_id}}"
+					]
+				},
+				"description": "Update an existing room"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Room",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/rooms/{{room_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"rooms",
+						"{{room_id}}"
+					]
+				},
+				"description": "Delete a room by ID"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Room Status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/rooms/{{room_id}}/status?force_refresh=false",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"rooms",
+						"{{room_id}}",
+						"status"
+					],
+					"query": [
+						{
+							"key": "force_refresh",
+							"value": "false"
+						}
+					]
+				},
+				"description": "Get availability status of a room (booked/available)"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8002"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "room_id",
+			"value": "1"
+		}
+	]
+}

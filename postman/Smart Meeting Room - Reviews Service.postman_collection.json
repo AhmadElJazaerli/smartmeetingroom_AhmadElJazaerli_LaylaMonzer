@@ -1,0 +1,198 @@
+{
+	"info": {
+		"_postman_id": "78b9e228-d9a1-49e8-9319-be683231626d",
+		"name": "Smart Meeting Room - Reviews Service",
+		"description": "Postman collection for all Review CRUD and moderation endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "41576664"
+	},
+	"item": [
+		{
+			"name": "Submit Review",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"room_id\": {{room_id}},\n  \"rating\": 5,\n  \"comment\": \"Great room, very clean and well equipped!\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/reviews",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"reviews"
+					]
+				},
+				"description": "User submits a review for a room"
+			},
+			"response": []
+		},
+		{
+			"name": "Update Review",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"rating\": 4,\n  \"comment\": \"Updated: Good room, but projector needs maintenance.\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/reviews/{{review_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"reviews",
+						"{{review_id}}"
+					]
+				},
+				"description": "Update an existing review (owner or moderator/admin)"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Review",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/reviews/{{review_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"reviews",
+						"{{review_id}}"
+					]
+				},
+				"description": "Delete a review (owner, moderator, or admin)"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Reviews for Room",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/reviews/room/{{room_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"reviews",
+						"room",
+						"{{room_id}}"
+					]
+				},
+				"description": "Fetch all reviews for a given room"
+			},
+			"response": []
+		},
+		{
+			"name": "Flag Review",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/reviews/{{review_id}}/flag?action=flag",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"reviews",
+						"{{review_id}}",
+						"flag"
+					],
+					"query": [
+						{
+							"key": "action",
+							"value": "flag"
+						}
+					]
+				},
+				"description": "Flag a review as inappropriate (moderator/admin)"
+			},
+			"response": []
+		},
+		{
+			"name": "Unflag Review",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/reviews/{{review_id}}/flag?action=unflag",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"reviews",
+						"{{review_id}}",
+						"flag"
+					],
+					"query": [
+						{
+							"key": "action",
+							"value": "unflag"
+						}
+					]
+				},
+				"description": "Remove flag from review (moderator/admin)"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8004"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "review_id",
+			"value": "1"
+		},
+		{
+			"key": "room_id",
+			"value": "1"
+		}
+	]
+}
